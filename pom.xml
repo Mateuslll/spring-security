@@ -11,8 +11,8 @@
 	<groupId>com.mateuslll</groupId>
 	<artifactId>springsecurity</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>spring-security</name>
+	<description>Spring Security demo project</description>
 	<url/>
 	<licenses>
 		<license/>
