@@ -31,12 +31,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.GET, "/api/message").permitAll()
-                        .anyRequest().authenticated());
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws SecurityConfigurationException {
+        try {
+            http.cors(Customizer.withDefaults())
+                    .authorizeHttpRequests(authorize -> authorize
+                            .requestMatchers(HttpMethod.GET, "/api/message").permitAll()
+                            .anyRequest().authenticated());
 
-        return http.build();
+            return http.build();
+        } catch (Exception ex) {
+            throw new SecurityConfigurationException("Failed to configure security filter chain", ex);
+        }
     }
 }
