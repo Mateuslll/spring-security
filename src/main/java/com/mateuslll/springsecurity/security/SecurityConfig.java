@@ -8,6 +8,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -36,11 +41,43 @@ public class SecurityConfig {
             http.cors(Customizer.withDefaults())
                     .authorizeHttpRequests(authorize -> authorize
                             .requestMatchers(HttpMethod.GET, "/api/message").permitAll()
-                            .anyRequest().authenticated());
+                            .requestMatchers(HttpMethod.GET, "/api/admin").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.GET, "/api/regular").hasRole("USER")
+                            .anyRequest().authenticated())
+                    .formLogin(Customizer.withDefaults())
+                    .httpBasic(Customizer.withDefaults()
+                    );
 
             return http.build();
         } catch (Exception ex) {
             throw new SecurityConfigurationException("Failed to configure security filter chain", ex);
         }
     }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // por enquanto vamos usar em memória, depois vamos usar o banco de dados
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        var admin = User.withUsername("admin")
+                .passwordEncoder(passwordEncoder::encode)
+                .password("123")
+                .roles("ADMIN")
+                .build();
+
+        var regular = User.withUsername("regular")
+                .passwordEncoder(passwordEncoder::encode)
+                .password("123")
+                .roles("USER")
+                .build();
+
+        return new InMemoryUserDetailsManager(admin, regular);
+    }
+
+    //fluxo criar conta => usuario -> 123 -> bcrypt -> $2a$10$...
+
+    // login => usuario -> 123 -> bcrypt -> $2a$10$... -> comparar com o hash armazenado == bcrypt.matches("123", "$2a$10$...")
 }
